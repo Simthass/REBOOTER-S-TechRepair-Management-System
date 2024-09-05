@@ -17,8 +17,9 @@ public class ManageCustomerOrders extends JFrame {
     private JTable orderTable;
     private DefaultTableModel tableModel;
     private Connection connection;
-    private static final String DB_URL = "jdbc:sqlserver://SIMTHASS\\SQLEXPRESS:1434;databaseName=TechRepairDB;" +
-            "encrypt=true;trustServerCertificate=true;integratedSecurity=true";
+    private static final String DB_URL =
+            "jdbc:sqlserver://SIMTHASS\\SQLEXPRESS:1434;databaseName=TechRepairDB;" +
+                    "encrypt=true;trustServerCertificate=true;integratedSecurity=true";
 
     public ManageCustomerOrders() {
         setTitle("Rebooter's System - Manage Customer Orders");
@@ -42,7 +43,8 @@ public class ManageCustomerOrders extends JFrame {
             connection = DriverManager.getConnection(DB_URL);
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to connect to the database", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Failed to connect to the database", "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
 
         loadOrders();
@@ -84,7 +86,8 @@ public class ManageCustomerOrders extends JFrame {
             stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error loading orders", "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading orders", "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -174,13 +177,18 @@ public class ManageCustomerOrders extends JFrame {
                 pstmt.executeUpdate();
                 pstmt.close();
 
+                // Reduce the product quantity from the inventory
+                String product = serviceTypeField.getText();
+                reduceProductQuantity(product);
+
                 if ("Completed".equals(statusField.getSelectedItem().toString())) {
-                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!", String.format(
-                            "Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
-                            customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
+                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!",
+                            String.format("Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
+                                    customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
                 }
 
-                JOptionPane.showMessageDialog(this, "Order added successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Order added successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -206,7 +214,11 @@ public class ManageCustomerOrders extends JFrame {
         statusField.setSelectedItem(tableModel.getValueAt(selectedRow, 4).toString());
 
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(10, 10, 10, 10)); GridBagConstraints gbc = new GridBagConstraints(); gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(5, 5, 5, 5);
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
         gbc.gridx = 0; gbc.gridy = 0; panel.add(new JLabel("Customer Name:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0; panel.add(customerNameField, gbc);
         gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Device:"), gbc);
@@ -236,13 +248,18 @@ public class ManageCustomerOrders extends JFrame {
                 pstmt.executeUpdate();
                 pstmt.close();
 
+                // Reduce the product quantity from the inventory
+                String product = serviceTypeField.getText();
+                reduceProductQuantity(product);
+
                 if ("Completed".equals(statusField.getSelectedItem().toString())) {
-                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!", String.format(
-                            "Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
-                            customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
+                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!",
+                            String.format("Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
+                                    customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
                 }
 
-                JOptionPane.showMessageDialog(this, "Order updated successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Order updated successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -251,10 +268,24 @@ public class ManageCustomerOrders extends JFrame {
         }
     }
 
+    private void reduceProductQuantity(String productName) {
+        try {
+            String query = "UPDATE Inventory SET Quantity = Quantity - 1 WHERE ItemName = ?";
+            PreparedStatement pstmt = connection.prepareStatement(query);
+            pstmt.setString(1, productName);
+            pstmt.executeUpdate();
+            pstmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error reducing product quantity: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void removeOrder() {
         int selectedRow = orderTable.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an order to remove", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an order to remove", "No Selection",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -270,11 +301,13 @@ public class ManageCustomerOrders extends JFrame {
                 pstmt.executeUpdate();
                 pstmt.close();
 
-                JOptionPane.showMessageDialog(this, "Order removed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Order removed successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error removing order: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error removing order: " + e.getMessage(),
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -361,5 +394,3 @@ public class ManageCustomerOrders extends JFrame {
     }
 
 }
-
-

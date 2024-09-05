@@ -233,7 +233,4 @@ public class EmployeeNotificationService extends JFrame {
         new RebootersSystemHome().setVisible(true);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new EmployeeNotificationService().setVisible(true));
-    }
 }
