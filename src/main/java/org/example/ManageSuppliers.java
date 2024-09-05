@@ -78,7 +78,7 @@ public class ManageSuppliers extends JFrame {
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        String[] columnNames = {"Supplier ID", "Supplier Name", "Contact Person", "Email", "Phone", "Address", "Main Part Supplied"};
+        String[] columnNames = {"Supplier ID", "Supplier Name", "Email", "Phone", "Address", "Main Part Supplied"};
         tableModel = new DefaultTableModel(columnNames, 0);
         supplierTable = new JTable(tableModel);
         supplierTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -171,7 +171,6 @@ public class ManageSuppliers extends JFrame {
                 Vector<Object> row = new Vector<>();
                 row.add(rs.getInt("SupplierID"));
                 row.add(rs.getString("SupplierName"));
-                row.add(rs.getString("ContactPerson"));
                 row.add(rs.getString("Email"));
                 row.add(rs.getString("Phone"));
                 row.add(rs.getString("Address"));
@@ -189,7 +188,6 @@ public class ManageSuppliers extends JFrame {
 
     private void addSupplier() {
         JTextField nameField = new JTextField(20);
-        JTextField contactPersonField = new JTextField(20);
         JTextField emailField = new JTextField(20);
         JTextField phoneField = new JTextField(20);
         JTextField addressField = new JTextField(20);
@@ -204,29 +202,26 @@ public class ManageSuppliers extends JFrame {
 
         gbc.gridx = 0; gbc.gridy = 0; panel.add(new JLabel("Supplier Name:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0; panel.add(nameField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Contact Person:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 1; panel.add(contactPersonField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 2; panel.add(emailField, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Phone:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; panel.add(phoneField, gbc);
-        gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Address:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 4; panel.add(addressField, gbc);
-        gbc.gridx = 0; gbc.gridy = 5; panel.add(new JLabel("Parts Name:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 5; panel.add(partsField, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Email:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 1; panel.add(emailField, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Phone:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 2; panel.add(phoneField, gbc);
+        gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Address:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 3; panel.add(addressField, gbc);
+        gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Parts Name:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 4; panel.add(partsField, gbc);
 
         int result = JOptionPane.showConfirmDialog(null, panel, "Add New Supplier",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String sql = "INSERT INTO Suppliers (SupplierName, ContactPerson, Email, Phone, Address, MainPartSupplied) VALUES (?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO Suppliers (SupplierName, Email, Phone, Address, MainPartSupplied) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 pstmt.setString(1, nameField.getText());
-                pstmt.setString(2, contactPersonField.getText());
-                pstmt.setString(3, emailField.getText());
-                pstmt.setString(4, phoneField.getText());
-                pstmt.setString(5, addressField.getText());
-                pstmt.setString(6, partsField.getText());
+                pstmt.setString(2, emailField.getText());
+                pstmt.setString(3, phoneField.getText());
+                pstmt.setString(4, addressField.getText());
+                pstmt.setString(5, partsField.getText());
                 pstmt.executeUpdate();
 
                 loadSuppliers();
@@ -246,11 +241,10 @@ public class ManageSuppliers extends JFrame {
         }
 
         JTextField nameField = new JTextField(tableModel.getValueAt(selectedRow, 1).toString(), 20);
-        JTextField contactPersonField = new JTextField(tableModel.getValueAt(selectedRow, 2).toString(), 20);
-        JTextField emailField = new JTextField(tableModel.getValueAt(selectedRow, 3).toString(), 20);
-        JTextField phoneField = new JTextField(tableModel.getValueAt(selectedRow, 4).toString(), 20);
-        JTextField addressField = new JTextField(tableModel.getValueAt(selectedRow, 5).toString(), 20);
-        JTextField partsField = new JTextField(tableModel.getValueAt(selectedRow, 6).toString(), 20);
+        JTextField emailField = new JTextField(tableModel.getValueAt(selectedRow, 2).toString(), 20);
+        JTextField phoneField = new JTextField(tableModel.getValueAt(selectedRow, 3).toString(), 20);
+        JTextField addressField = new JTextField(tableModel.getValueAt(selectedRow, 4).toString(), 20);
+        JTextField partsField = new JTextField(tableModel.getValueAt(selectedRow, 5).toString(), 20);
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -261,30 +255,27 @@ public class ManageSuppliers extends JFrame {
 
         gbc.gridx = 0; gbc.gridy = 0; panel.add(new JLabel("Supplier Name:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0; panel.add(nameField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Contact Person:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 1; panel.add(contactPersonField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 2; panel.add(emailField, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Phone:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; panel.add(phoneField, gbc);
-        gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Address:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 4; panel.add(addressField, gbc);
-        gbc.gridx = 0; gbc.gridy = 5; panel.add(new JLabel("Parts Name:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 5; panel.add(partsField, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Email:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 1; panel.add(emailField, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Phone:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 2; panel.add(phoneField, gbc);
+        gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Address:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 3; panel.add(addressField, gbc);
+        gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Parts Name:"), gbc);
+        gbc.gridx = 1; gbc.gridy = 4; panel.add(partsField, gbc);
 
         int result = JOptionPane.showConfirmDialog(null, panel, "Update Supplier",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String sql = "UPDATE Suppliers SET SupplierName = ?, ContactPerson = ?, Email = ?, Phone = ?, Address = ?, MainPartSupplied = ? WHERE SupplierID = ?";
+                String sql = "UPDATE Suppliers SET SupplierName = ?, Email = ?, Phone = ?, Address = ?, MainPartSupplied = ? WHERE SupplierID = ?";
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 pstmt.setString(1, nameField.getText());
-                pstmt.setString(2, contactPersonField.getText());
-                pstmt.setString(3, emailField.getText());
-                pstmt.setString(4, phoneField.getText());
-                pstmt.setString(5, addressField.getText());
-                pstmt.setString(6, partsField.getText());
-                pstmt.setInt(7, (int) tableModel.getValueAt(selectedRow, 0));
+                pstmt.setString(2, emailField.getText());
+                pstmt.setString(3, phoneField.getText());
+                pstmt.setString(4, addressField.getText());
+                pstmt.setString(5, partsField.getText());
+                pstmt.setInt(6, (int) tableModel.getValueAt(selectedRow, 0));
                 pstmt.executeUpdate();
 
                 loadSuppliers();
