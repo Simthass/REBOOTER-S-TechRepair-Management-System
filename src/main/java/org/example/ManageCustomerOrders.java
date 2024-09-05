@@ -1,11 +1,15 @@
 package org.example;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.Properties;
 import java.util.Vector;
 
 public class ManageCustomerOrders extends JFrame {
@@ -72,7 +76,7 @@ public class ManageCustomerOrders extends JFrame {
                 row.add(rs.getString("ServiceType"));
                 row.add(rs.getString("Status"));
                 row.add(rs.getString("TotalPrice"));
-                row.add(rs.getString("Customer_Email"));// Correct column name
+                row.add(rs.getString("Customer_Email"));
                 tableModel.addRow(row);
             }
 
@@ -131,8 +135,8 @@ public class ManageCustomerOrders extends JFrame {
         JTextField customerNameField = new JTextField(20);
         JTextField deviceField = new JTextField(20);
         JTextField serviceTypeField = new JTextField(20);
-        JTextField TotalPriceField = new JTextField(20);
-        JTextField EmailField = new JTextField(20);
+        JTextField totalPriceField = new JTextField(20);
+        JTextField emailField = new JTextField(20);
         JComboBox<String> statusField = new JComboBox<>(new String[]{"Pending", "In Progress", "Completed", "Cancelled"});
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -146,14 +150,14 @@ public class ManageCustomerOrders extends JFrame {
         gbc.gridx = 1; gbc.gridy = 0; panel.add(customerNameField, gbc);
         gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Device:"), gbc);
         gbc.gridx = 1; gbc.gridy = 1; panel.add(deviceField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Service Type:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Product / Service Type:"), gbc);
         gbc.gridx = 1; gbc.gridy = 2; panel.add(serviceTypeField, gbc);
         gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; panel.add(EmailField, gbc);
+        gbc.gridx = 1; gbc.gridy = 3; panel.add(emailField, gbc);
         gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Status:"), gbc);
         gbc.gridx = 1; gbc.gridy = 4; panel.add(statusField, gbc);
         gbc.gridx = 0; gbc.gridy = 5; panel.add(new JLabel("Total Price:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 5; panel.add(TotalPriceField, gbc);
+        gbc.gridx = 1; gbc.gridy = 5; panel.add(totalPriceField, gbc);
 
         int result = JOptionPane.showConfirmDialog(null, panel, "Add New Order",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -165,10 +169,17 @@ public class ManageCustomerOrders extends JFrame {
                 pstmt.setString(2, deviceField.getText());
                 pstmt.setString(3, serviceTypeField.getText());
                 pstmt.setString(4, statusField.getSelectedItem().toString());
-                pstmt.setString(5, TotalPriceField.getText());
-                pstmt.setString(6, EmailField.getText());
+                pstmt.setString(5, totalPriceField.getText());
+                pstmt.setString(6, emailField.getText());
                 pstmt.executeUpdate();
                 pstmt.close();
+
+                if ("Completed".equals(statusField.getSelectedItem().toString())) {
+                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!", String.format(
+                            "Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
+                            customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
+                }
+
                 JOptionPane.showMessageDialog(this, "Order added successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
@@ -189,17 +200,13 @@ public class ManageCustomerOrders extends JFrame {
         JTextField customerNameField = new JTextField(tableModel.getValueAt(selectedRow, 1).toString(), 20);
         JTextField deviceField = new JTextField(tableModel.getValueAt(selectedRow, 2).toString(), 20);
         JTextField serviceTypeField = new JTextField(tableModel.getValueAt(selectedRow, 3).toString(), 20);
-        JTextField TotalPriceField = new JTextField(tableModel.getValueAt(selectedRow, 5).toString(), 20);
-        JTextField EmailField = new JTextField(tableModel.getValueAt(selectedRow, 6).toString(), 20);        JComboBox<String> statusField = new JComboBox<>(new String[]{"Pending", "In Progress", "Completed", "Cancelled"});
+        JTextField totalPriceField = new JTextField(tableModel.getValueAt(selectedRow, 5).toString(), 20);
+        JTextField emailField = new JTextField(tableModel.getValueAt(selectedRow, 6).toString(), 20);
+        JComboBox<String> statusField = new JComboBox<>(new String[]{"Pending", "In Progress", "Completed", "Cancelled"});
         statusField.setSelectedItem(tableModel.getValueAt(selectedRow, 4).toString());
 
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10)); GridBagConstraints gbc = new GridBagConstraints(); gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(5, 5, 5, 5);
         gbc.gridx = 0; gbc.gridy = 0; panel.add(new JLabel("Customer Name:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0; panel.add(customerNameField, gbc);
         gbc.gridx = 0; gbc.gridy = 1; panel.add(new JLabel("Device:"), gbc);
@@ -207,27 +214,34 @@ public class ManageCustomerOrders extends JFrame {
         gbc.gridx = 0; gbc.gridy = 2; panel.add(new JLabel("Service Type:"), gbc);
         gbc.gridx = 1; gbc.gridy = 2; panel.add(serviceTypeField, gbc);
         gbc.gridx = 0; gbc.gridy = 3; panel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 3; panel.add(EmailField, gbc);
+        gbc.gridx = 1; gbc.gridy = 3; panel.add(emailField, gbc);
         gbc.gridx = 0; gbc.gridy = 4; panel.add(new JLabel("Status:"), gbc);
         gbc.gridx = 1; gbc.gridy = 4; panel.add(statusField, gbc);
         gbc.gridx = 0; gbc.gridy = 5; panel.add(new JLabel("Total Price:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 5; panel.add(TotalPriceField, gbc);
+        gbc.gridx = 1; gbc.gridy = 5; panel.add(totalPriceField, gbc);
 
         int result = JOptionPane.showConfirmDialog(null, panel, "Update Order",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String sql = "UPDATE CustomerOrders SET CustomerName=?, Device=?, ServiceType=?, Status=?, TotalPrice=?, Customer_Email=? WHERE OrderID=?";
+                String sql = "UPDATE CustomerOrders SET CustomerName = ?, Device = ?, ServiceType = ?, Status = ?, TotalPrice = ?, Customer_Email = ? WHERE OrderID = ?";
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 pstmt.setString(1, customerNameField.getText());
                 pstmt.setString(2, deviceField.getText());
                 pstmt.setString(3, serviceTypeField.getText());
                 pstmt.setString(4, statusField.getSelectedItem().toString());
-                pstmt.setString(5, TotalPriceField.getText());
-                pstmt.setString(6, EmailField.getText());
+                pstmt.setString(5, totalPriceField.getText());
+                pstmt.setString(6, emailField.getText());
                 pstmt.setInt(7, orderId);
                 pstmt.executeUpdate();
                 pstmt.close();
+
+                if ("Completed".equals(statusField.getSelectedItem().toString())) {
+                    sendEmailNotification(emailField.getText(), "Your Device is Ready for Collection!", String.format(
+                            "Dear %s,\n\nYour device (%s) serviced for %s is ready for collection.\n\nThank you for choosing Rebooter's Tech Repair Service.\n\nBest regards,\nRebooter's Tech Repair Team",
+                            customerNameField.getText(), deviceField.getText(), serviceTypeField.getText()));
+                }
+
                 JOptionPane.showMessageDialog(this, "Order updated successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
@@ -237,64 +251,32 @@ public class ManageCustomerOrders extends JFrame {
         }
     }
 
-    private void deleteOrder() {
+    private void removeOrder() {
         int selectedRow = orderTable.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an order to delete");
+            JOptionPane.showMessageDialog(this, "Please select an order to remove", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int orderId = (int) tableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this order?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to remove this order?",
+                "Confirm Removal", JOptionPane.YES_NO_OPTION);
+
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                String sql = "DELETE FROM CustomerOrders WHERE OrderID=?";
+                String sql = "DELETE FROM CustomerOrders WHERE OrderID = ?";
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 pstmt.setInt(1, orderId);
                 pstmt.executeUpdate();
                 pstmt.close();
-                JOptionPane.showMessageDialog(this, "Order deleted successfully");
+
+                JOptionPane.showMessageDialog(this, "Order removed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadOrders();
             } catch (SQLException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error deleting order", "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error removing order: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(new Color(52, 152, 219));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                switch (text) {
-                    case "Add Order":
-                        addOrder();
-                        break;
-                    case "Update Order":
-                        updateOrder();
-                        break;
-                    case "Remove Order":
-                        deleteOrder();
-                        break;
-                    case "Back to Home":
-                        new RebootersSystemHome().setVisible(true);
-                        dispose();
-                        break;
-                    default:
-                        JOptionPane.showMessageDialog(ManageCustomerOrders.this,
-                                "You clicked: " + text, "Action", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
-
-        return button;
     }
 
     private JPanel createFooterPanel() {
@@ -304,10 +286,80 @@ public class ManageCustomerOrders extends JFrame {
 
         JLabel footerLabel = new JLabel("© 2024 Tech Repair. All rights reserved.");
         footerLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        footerLabel.setForeground(Color.WHITE);
+        footerLabel.setForeground(Color.white);
         footerPanel.add(footerLabel);
         footerLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         return footerPanel;
     }
+
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(new Color(52, 152, 219));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(150, 40));
+        button.addActionListener(new ButtonClickListener());
+        return button;
+    }
+
+    private class ButtonClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JButton source = (JButton) e.getSource();
+            switch (source.getText()) {
+                case "Add Order":
+                    addOrder();
+                    break;
+                case "Update Order":
+                    updateOrder();
+                    break;
+                case "Remove Order":
+                    removeOrder();
+                    break;
+                case "Back to Home":
+                    dispose();
+                    new RebootersSystemHome().setVisible(true);
+                    break;
+            }
+        }
+    }
+
+    private void sendEmailNotification(String toEmail, String subject, String message) {
+        final String fromEmail = "rebootersrepairservice@gmail.com"; // Update with your email
+        final String password = "ytti wrpl iqhw ofan "; // Update with your email password
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com"); // Update with your SMTP host
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, password);
+            }
+        });
+
+        try {
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(fromEmail));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            msg.setSubject(subject);
+            msg.setText(message);
+
+            Transport.send(msg);
+            System.out.println("Email sent successfully to " + toEmail);
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error sending email notification: " + e.getMessage(),
+                    "Email Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 }
+
+

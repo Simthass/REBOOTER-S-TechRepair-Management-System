@@ -63,7 +63,7 @@ public class NotificationServiceCustomer {
     private void sendEmailNotification(String recipientEmail, String subject, String messageText) {
         // Email configuration
         String senderEmail = "rebootersrepairservice@gmail.com";  // Replace with your Gmail address
-        String senderPassword = "ytti wrpl iqhw ofan ";  // Replace with your App Password
+        String senderPassword = "";  // Replace with your App Password
 
         Properties properties = new Properties();
         properties.put("mail.smtp.host", "smtp.gmail.com");

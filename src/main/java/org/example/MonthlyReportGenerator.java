@@ -244,7 +244,7 @@ public class MonthlyReportGenerator extends JFrame {
 
         Statement stmt = connection.createStatement();
         String query = "SELECT JobName, COUNT(*) AS TotalJobs " +
-                "FROM Jobs WHERE Status <> 'Completed' " +
+                "FROM Jobs WHERE Work_Status <> 'Completed' " +
                 "GROUP BY JobName ORDER BY TotalJobs ASC";
         ResultSet rs = stmt.executeQuery(query);
 

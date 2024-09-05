@@ -424,6 +424,7 @@ public class AllocateEmployees extends JFrame {
         footerLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         footerLabel.setForeground(Color.WHITE);
         footerPanel.add(footerLabel, BorderLayout.CENTER);
+        footerLabel.setHorizontalAlignment(SwingConstants.CENTER);
         return footerPanel;
     }
 }
